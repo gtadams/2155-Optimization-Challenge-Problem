@@ -1,0 +1,10 @@
+numpy
+scipy
+pymoo==0.6
+jax
+jaxlib
+tqdm
+matplotlib
+svgpath2mpl
+jupyter
+jax-metal
