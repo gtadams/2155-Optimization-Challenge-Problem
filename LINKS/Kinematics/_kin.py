@@ -12,6 +12,7 @@ def dyadic_path(
     unkowns = unkowns[~np.isin(unkowns, knowns)]
     
     full_edges = np.concatenate((edges, np.fliplr(edges)))
+    full_edges = np.unique(full_edges, axis=0)
     full_edges = full_edges[np.argsort(full_edges[:,0])]
     
     ptr = np.searchsorted(full_edges[:,0], np.arange(N))

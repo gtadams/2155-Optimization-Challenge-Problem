@@ -2,12 +2,13 @@ import jax.numpy as np
 from ._utils import equisample, find_optimal_correspondences
 import jax
 from typing import List, Tuple, Optional, Union
+import matplotlib.pyplot as plt
 
 class CurveEngine:
     def __init__(self,
                  resolution : Optional[int] = 200,
                  equisample : Optional[bool] = True,
-                 normalize_scale : Optional[bool] = True,
+                 normalize_scale : Optional[bool] = False,
                  device : Optional[Union[jax.Device, str]] = 'cpu'):
         
         self.resolution = resolution
@@ -126,6 +127,11 @@ class CurveEngine:
                 
                 s_target = ((np.square(normalized_targets).sum(-1).sum(-1)/n)**0.5)[:,None,None]
                 normalized_targets = normalized_targets/s_target
+            else:
+                s_target = ((np.square(normalized_targets).sum(-1).sum(-1)/n)**0.5)[:,None,None]
+                
+                normalized_targets = normalized_targets/s_target
+                normalized_curves = normalized_curves/s_target
 
             optimal_correspondences, R, aligned_curves, distances = find_optimal_correspondences(normalized_curves,
                                                                                                 normalized_targets,
@@ -185,3 +191,92 @@ class CurveEngine:
                                                                                 return_transforms=False)
             
             return distances
+    
+    def visualize_alignment(self,
+                            curves: np.ndarray,
+                            target_curves: np.ndarray):
+        aligned_curves, aligned_targets, distances = self.optimal_alignment(curves, target_curves,
+                                                                            return_normalized=True,
+                                                                            return_distances=True,
+                                                                            return_transforms=False)
+        if curves.ndim > 2:
+            n_curves = aligned_curves.shape[0]
+        else:
+            n_curves = 1
+            curves = curves[None]
+            target_curves = target_curves[None]
+            aligned_curves = aligned_curves[None]
+            aligned_targets = aligned_targets[None]
+            
+        plt.subplots(nrows=n_curves, ncols=2, figsize=(8, 4*n_curves))
+        
+        for i in range(n_curves):
+            plt.subplot(n_curves, 2, 2*i+1)
+            plt.plot(curves[i,:,0], curves[i,:,1], label='Input Curve', lw = 4, color='darkorange')
+            plt.plot(target_curves[i,:,0], target_curves[i,:,1], label='Target Curve', lw = 4, color='navy', alpha=0.7)
+            plt.axis('equal')
+            if i == 0:
+                plt.title(f'Before Alignment')
+            plt.axis('off')
+            
+            plt.subplot(n_curves, 2, 2*i+2)
+            plt.plot(aligned_curves[i,:,0], aligned_curves[i,:,1], label='Aligned Input Curve', lw = 4, color='darkorange')
+            plt.plot(aligned_targets[i,:,0], aligned_targets[i,:,1], label='Aligned Target Curve', lw = 4, color='navy', alpha=0.7)
+            plt.axis('equal')
+            if i == 0:
+                plt.title('After Alignment')
+            plt.axis('off')
+            
+        # add legend at the bottom center of the whole figure
+        plt.figlegend(['Input Curve', 'Target Curve'], loc='lower center', ncol=2, fontsize=12)
+        plt.subplots_adjust(bottom=0.1)
+        
+    def visualize_comparison(self, curves, target_curves):
+        aligned_curves, aligned_targets, distances = self.optimal_alignment(curves, target_curves,
+                                                                            return_normalized=True,
+                                                                            return_distances=True,
+                                                                            return_transforms=False)
+        if curves.ndim > 2:
+            n_curves = aligned_curves.shape[0]
+        else:
+            n_curves = 1
+            curves = curves[None]
+            target_curves = target_curves[None]
+            aligned_curves = aligned_curves[None]
+            aligned_targets = aligned_targets[None]
+            
+        plt.subplots(nrows=n_curves, ncols=1, figsize=(4, 4*n_curves))
+        
+        for i in range(n_curves):
+            plt.subplot(n_curves, 1, i+1)
+            plt.plot(aligned_curves[i,:,0], aligned_curves[i,:,1], label='Aligned Input Curve', lw = 4, color='darkorange')
+            plt.plot(aligned_targets[i,:,0], aligned_targets[i,:,1], label='Target Curve', lw = 4, color='navy', alpha=0.7)
+            plt.axis('equal')
+            if i == 0:
+                plt.title('Overlayed Curves')
+            plt.axis('off')
+            
+        # add legend at the bottom center of the whole figure
+        plt.figlegend(['Aligned Input Curve', 'Target Curve'], loc='lower center', ncol=2, fontsize=12)
+        plt.subplots_adjust(bottom=0.1)
+        
+    def visualize_single_comparison(
+        self,
+        curve: np.ndarray,
+        target_curve: np.ndarray,
+        ax = None
+    ):
+        aligned_curve, aligned_target, distance = self.optimal_alignment(curve, target_curve,
+                                                                        return_normalized=True,
+                                                                        return_distances=True,
+                                                                        return_transforms=False)
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(6,6))
+        
+        ax.plot(aligned_curve[:,0], aligned_curve[:,1], label='Aligned Input Curve', lw = 4, color='darkorange')
+        ax.plot(aligned_target[:,0], aligned_target[:,1], label='Target Curve', lw = 4, color='navy', alpha=0.7)
+        ax.axis('equal')
+        ax.axis('off')
+        ax.legend(fontsize=12, loc='lower center', ncol=2)
+
+        return ax

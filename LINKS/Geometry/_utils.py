@@ -22,15 +22,16 @@ def equisample(curves, n):
 
     return uniform_curves
 
-def normalize(curves):
+def normalize(curves, scale=True):
     
     n = curves.shape[1]
     # center curves
     curves = curves - curves.mean(1)[:,None]
     
     # apply uniform scaling
-    s = ((np.square(curves).sum(-1).sum(-1)/n)**0.5)[:,None,None]
-    curves = curves/s
+    if scale:
+        s = ((np.square(curves).sum(-1).sum(-1)/n)**0.5)[:,None,None]
+        curves = curves/s
     
     return curves
 

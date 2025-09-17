@@ -185,6 +185,5 @@ futtop/*
 !futtop/*.fut
 !futtop/*/
 
-*.npy
 *.mat
 *experimental*

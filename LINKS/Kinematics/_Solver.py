@@ -37,7 +37,7 @@ class MechanismSolver:
         else:
             raise ValueError("Device must be 'cpu' or 'gpu' or a jax.Device instance.")
     
-    def _solve(self,*args, **kwargs):
+    def _solve(self, *args, **kwargs):
         with jax.default_device(jax.devices("cpu")[0]):
             return  dyadic_solve(*args, **kwargs)
     
@@ -137,6 +137,40 @@ class MechanismSolver:
             
         return sorted_x0s, sorted_edges, sorted_fixed_nodes, sorted_motors, orders, mappings, valid
 
+    def preprocess(self,
+                   x0s: Union[np.ndarray, List[np.ndarray]],
+                   edges: Union[np.ndarray, List[np.ndarray]],
+                   fixed_nodes: Union[np.ndarray, List[np.ndarray]],
+                   motors: Optional[Union[np.ndarray, List[np.ndarray]]] = None):
+        
+        if not isinstance(x0s, list):
+            x0s = [x0s]
+            edges = [edges]
+            fixed_nodes = [fixed_nodes]
+            motors = [motors] if motors is not None else [np.array([0, 1])]
+
+        if not self.is_sorted:
+            x0s, edges, fixed_nodes, motors, orders, mappings, valid = self.sort_batch(x0s, edges, fixed_nodes, motors)
+        else:
+            orders = [np.arange(len(x0s[i])) for i in range(len(x0s))]
+            mappings = [np.arange(len(x0s[i])) for i in range(len(x0s))]
+            valid = np.ones(len(x0s), dtype=bool)
+
+        x0s_ = np.zeros((len(x0s), self.max_size, 2), dtype=np.float64)
+        As_ = np.zeros((len(x0s), self.max_size, self.max_size), dtype=np.float64)
+        node_types_ = np.zeros((len(x0s), self.max_size, 1), dtype=np.float64)
+        
+        for i in range(len(x0s)):
+            x0s_[i, :x0s[i].shape[0], :] = x0s[i]
+            As_[i, edges[i][:, 0], edges[i][:, 1]] = 1.0
+            node_types_[i, fixed_nodes[i], 0] = 1.0
+            node_types_[i, x0s[i].shape[0]:, 0] = 1.0
+
+        As_ = As_ + np.transpose(As_, (0, 2, 1))
+        As_ = (As_ > 0).astype(np.float64)
+        
+        return As_, x0s_, node_types_, motors, orders, mappings, valid
+    
     def _batch_solve(self,
                     x0s: List[np.ndarray],
                     edges: List[np.ndarray],

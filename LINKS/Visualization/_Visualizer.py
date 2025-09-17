@@ -57,7 +57,7 @@ class MechanismVisualizer:
             Which joint to highlight. If 'auto', highlights the terminal joint if solving is enabled.
         '''
         
-        self.solver = MechanismSolver(max_size=max_size, timesteps=timesteps)
+        self.solver = MechanismSolver(max_size=max_size, timesteps=timesteps, device='cpu')
         self.solve = solve
         self.timesteps = timesteps
         self.joint_color = joint_color
@@ -82,9 +82,10 @@ class MechanismVisualizer:
     def __call__(self,
                  x0: np.ndarray,
                  edges: np.ndarray,
-                 fixed_nodes: np.ndarray = None,
+                 fixed_joints: np.ndarray = None,
                  motor: Optional[np.ndarray] = np.array([0, 1]),
                  ax: Optional[plt.Axes] = None,
+                 highlight: Optional[int] = None,
                  solution=None):
         '''
         Visualize the mechanism and its motion (if solve is True or solution is provided).
@@ -105,10 +106,10 @@ class MechanismVisualizer:
             Precomputed solution of joint positions over time, shape (T, N, 2). If provided, this is used instead of solving.
         '''
         
-        highlight = self.highlight
+        highlight = self.highlight if highlight is None else highlight
         if self.solve and solution is None:
-            solution, order = self.solver(x0, edges, fixed_nodes, motor, return_order=True)
-            if self.highlight == 'terminal':
+            solution, order = self.solver(x0, edges, fixed_joints, motor, return_order=True)
+            if self.highlight == 'terminal' and not isinstance(highlight, int):
                 highlight = order[-1]
         if solution is not None and highlight == 'terminal':
             highlight = solution.shape[0]-1 # assume last is terminal position
@@ -116,7 +117,7 @@ class MechanismVisualizer:
         ax = draw_mechanism(
             x0,
             edges,
-            fixed_nodes=fixed_nodes,
+            fixed_nodes=fixed_joints,
             motor=motor,
             ax=ax,
             highlight=highlight,
