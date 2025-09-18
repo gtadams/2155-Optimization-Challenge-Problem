@@ -2,7 +2,7 @@ scipy
 jupyter
 jax==0.5.3
 matplotlib==3.10.6
-numpy==2.3.3
+numpy==2
 pymoo==0.6.0
 svgpath2mpl==1.0.0
 tqdm==4.67.1
