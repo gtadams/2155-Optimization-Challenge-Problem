@@ -48,7 +48,12 @@ def evaluate_submission(
             motors = []
             target_idx = []
             
+            counter = 0
             for item in submission[problem_key]:
+                counter += 1
+                if counter > 1000:
+                    print(f"Warning: More than 1000 designs submitted for {problem_key}. Only the first 1000 will be evaluated.")
+                    break
                 if 'x0' not in item or 'edges' not in item or 'fixed_joints' not in item or 'motor' not in item:
                     # Invalid entry, skip
                     continue
