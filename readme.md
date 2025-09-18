@@ -19,6 +19,6 @@ conda create --name CP1 python=3.10
 Then activate the environment and install packages using pip:
 
 ```bash
-conda acitvate CP1
+conda activate CP1
 pip install -r requirements_CPU.txt
 ```
