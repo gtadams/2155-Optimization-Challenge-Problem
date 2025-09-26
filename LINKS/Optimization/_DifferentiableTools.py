@@ -273,21 +273,21 @@ class DifferentiableTools:
 
             for i in range(len(distance_grads)):
                 if is_single:
-                    if distance_grads.shape != x0s.shape:
+                    if distance_grads[i].shape != x0s.shape:
                         g = np.zeros_like(x0s)
-                        if distance_grads.shape[0] < g.shape[0]:
-                            g[:distance_grads.shape[0], :distance_grads.shape[1]] = distance_grads
+                        if distance_grads[i].shape[0] < g.shape[0]:
+                            g[:distance_grads[i].shape[0], :distance_grads[i].shape[1]] = distance_grads[i]
                         else:
-                            g = distance_grads[:g.shape[0], :g.shape[1]]
+                            g = distance_grads[i][:g.shape[0], :g.shape[1]]
                         distance_grads = g
                     if self.material:
-                        if material_grads.shape != x0s.shape:
+                        if material_grads[i].shape != x0s.shape:
                             g = np.zeros_like(x0s)
-                            if material_grads.shape[0] < g.shape[0]:
-                                g[:material_grads.shape[0], :material_grads.shape[1]] = material_grads
+                            if material_grads[i].shape[0] < g.shape[0]:
+                                g[:material_grads[i].shape[0], :material_grads[i].shape[1]] = material_grads[i]
                             else:
-                                g = material_grads[:g.shape[0], :g.shape[1]]
-                            material_grads = g
+                                g = material_grads[i][:g.shape[0], :g.shape[1]]
+                            material_grads[i] = g
                 else:
                     if distance_grads[i].shape != x0s[i].shape:
                         g = np.zeros_like(x0s[i])
