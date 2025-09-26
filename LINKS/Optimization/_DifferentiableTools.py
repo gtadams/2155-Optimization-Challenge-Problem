@@ -273,21 +273,7 @@ class DifferentiableTools:
 
             for i in range(len(distance_grads)):
                 if is_single:
-                    if distance_grads[i].shape != x0s.shape:
-                        g = np.zeros_like(x0s)
-                        if distance_grads[i].shape[0] < g.shape[0]:
-                            g[:distance_grads[i].shape[0], :distance_grads[i].shape[1]] = distance_grads[i]
-                        else:
-                            g = distance_grads[i][:g.shape[0], :g.shape[1]]
-                        distance_grads[i] = g
-                    if self.material:
-                        if material_grads[i].shape != x0s.shape:
-                            g = np.zeros_like(x0s)
-                            if material_grads[i].shape[0] < g.shape[0]:
-                                g[:material_grads[i].shape[0], :material_grads[i].shape[1]] = material_grads[i]
-                            else:
-                                g = material_grads[i][:g.shape[0], :g.shape[1]]
-                            material_grads[i] = g
+                    continue
                 else:
                     if distance_grads[i].shape != x0s[i].shape:
                         g = np.zeros_like(x0s[i])
